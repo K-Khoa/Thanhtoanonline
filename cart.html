@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Giỏ hàng</title><link rel="stylesheet" href="style.css"></head><body>
+<header><a href="index.html">🎵 Music Store</a><a href="cart.html">🛒 Giỏ hàng (<span id="badge">0</span>)</a></header>
+<main>
+ <h2>Giỏ hàng</h2>
+ <div class="box" id="cartBox">Đang tải...</div>
+ <form class="box" id="f" method="post" action="checkout" style="display:none">
+  <h3>Thông tin thanh toán</h3>
+  <label>Họ tên</label><input name="name" required>
+  <label>Email nhận xác nhận</label><input name="email" type="email" required>
+  <input type="hidden" name="cart" id="cartField">
+  <button type="submit">Đặt hàng &amp; thanh toán</button>
+  <p><small>Thanh toán giả lập, không trừ tiền thật. Email xác nhận được gửi thật.</small></p>
+ </form>
+</main>
+<script src="app.js"></script>
+<script>
+let products = [];
+function render() {
+  const c = getCart(), ids = Object.keys(c).filter(id => products.find(p => p.id == id));
+  const box = document.getElementById('cartBox'), f = document.getElementById('f');
+  if (!ids.length) { box.innerHTML = 'Giỏ hàng trống. <a href="index.html">Chọn sản phẩm</a>'; f.style.display = 'none'; return; }
+  f.style.display = 'block';
+  let total = 0;
+  box.innerHTML = '<table>' + ids.map(id => {
+    const p = products.find(x => x.id == id), q = c[id]; total += p.price * q;
+    return `<tr><td>${p.icon} ${p.name}</td>
+      <td><button onclick="chg(${id},-1)">−</button> ${q} <button onclick="chg(${id},1)">+</button></td>
+      <td align="right">${vnd(p.price * q)}</td><td><button onclick="chg(${id},-99)">✕</button></td></tr>`;
+  }).join('') + `<tr><td colspan="2"><b>Tổng cộng</b></td><td align="right"><b>${vnd(total)}</b></td><td></td></tr></table>`;
+  document.getElementById('cartField').value = ids.map(id => id + ':' + c[id]).join(',');
+}
+function chg(id, d) { const c = getCart(); c[id] = (c[id] || 0) + d; if (c[id] < 1) delete c[id]; saveCart(c); render(); }
+loadProducts().then(ps => { products = ps; render(); });
+</script></body></html>
